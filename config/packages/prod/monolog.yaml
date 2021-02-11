@@ -1,0 +1,11 @@
+monolog:
+    handlers:
+        main:
+            type: rotating_file
+            action_level: error
+            handler: nested
+            max_files: 5
+        console:
+            type: console
+            process_psr_3_messages: false
+            channels: ["!event", "!doctrine"]
