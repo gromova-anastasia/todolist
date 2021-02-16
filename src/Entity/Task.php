@@ -21,6 +21,7 @@ class Task
     /**
      * @ORM\Column(type="string", nullable=false, length=1000)
      * @Assert\NotBlank
+     * @Assert\Length(max=1000, maxMessage = "Your first name cannot be longer than {{ limit }} characters")
      */
     private $text;
 
@@ -47,7 +48,7 @@ class Task
     /**
      * @return mixed
      */
-    public function getText()
+    public function getText(): string
     {
         return $this->text;
     }
@@ -59,6 +60,7 @@ class Task
     {
         $this->text = $text;
     }
+
 
     /**
      * @return bool
@@ -79,15 +81,15 @@ class Task
     /**
      * @return mixed
      */
-    public function getCreateDate()
+    public function getCreateDate(): \DateTime
     {
         return $this->createDate;
     }
 
     /**
-     * @param mixed $createDate
+     * @param \DateTime $createDate
      */
-    public function setCreateDate($createDate): void
+    public function setCreateDate(\DateTime $createDate): void
     {
         $this->createDate = $createDate;
     }

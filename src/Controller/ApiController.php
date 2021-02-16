@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Task;
 use App\Repository\TaskRepository;
+use Exception;
 use FOS\RestBundle\Controller\AbstractFOSRestController;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Monolog\Handler\RotatingFileHandler;
@@ -66,9 +67,20 @@ class ApiController extends AbstractFOSRestController
 
         $task = new Task();
         $task->setText($request->get('text'));
-        $result = $this->validateAndSaveTask($task);
 
-        return new JsonResponse($result['answer'], $result['status']);
+        $errors = $this->validator->validate($task);
+        if (count($errors) > 0) {
+            return new JsonResponse((string)$errors, 400);
+        }
+
+        try {
+            $this->taskRepository->save($task);
+        } catch (Exception $exception) {
+            $this->logger->critical('create error - ' . $exception->getMessage());
+            return new JsonResponse($exception->getMessage(), 500);
+        }
+
+        return new JsonResponse('success', 200);
     }
 
     /**
@@ -79,7 +91,8 @@ class ApiController extends AbstractFOSRestController
      *
      * @SWG\Tag(name="Mark As Performed Task")
      * @SWG\Response(response="200",description="Task mark as performed")
-     * @SWG\Response(response="400",description="Task is not exists")
+     * @SWG\Response(response="400",description="Not enought data")
+     * @SWG\Response(response="404",description="Task is not exists")
      * @SWG\Response(response="500",description="Server error")
      */
     public function markAsPerformedTask(
@@ -90,14 +103,24 @@ class ApiController extends AbstractFOSRestController
         $this->logger->info('mark as read task - ' . $id);
 
         $task = $this->taskRepository->find($id);
-        if(null == $task){
-            return new JsonResponse('Id not found', 400);
+        if (null == $task) {
+            return new JsonResponse('Task not found', 404);
         }
 
         $task->setPerformed(true);
-        $result = $this->validateAndSaveTask($task);
+        $errors = $this->validator->validate($task);
+        if (count($errors) > 0) {
+            return new JsonResponse((string)$errors, 400);
+        }
 
-        return new JsonResponse($result['answer'], $result['status']);
+        try {
+            $this->taskRepository->save($task);
+        } catch (Exception $exception) {
+            $this->logger->critical('markAsPerformed error - ' . $exception->getMessage());
+            return new JsonResponse($exception->getMessage(), 500);
+        }
+
+        return new JsonResponse('success', 200);
     }
 
     /**
@@ -108,6 +131,7 @@ class ApiController extends AbstractFOSRestController
      *
      * @SWG\Tag(name="Get Unperformed Tasks")
      * @SWG\Response(response="200",description="Get unperformed tasks")
+     * @SWG\Response(response="400",description="Not enought data")]
      */
     public function getUnperformedTasks(
         Request $request
@@ -119,7 +143,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         $result = $this->taskRepository->getUnperformedTasks($limit);
-        return new JsonResponse($result);
+
+        return new JsonResponse($result, 200);
     }
 
 
@@ -131,6 +156,7 @@ class ApiController extends AbstractFOSRestController
      *
      * @SWG\Tag(name="Get Performed Tasks")
      * @SWG\Response(response="200",description="Get performed tasks")
+     * @SWG\Response(response="400",description="Not enought data")
      */
     public function getPerformedTasks(
         Request $request
@@ -144,7 +170,8 @@ class ApiController extends AbstractFOSRestController
         }
 
         $result = $this->taskRepository->getPerformedTasks($limit);
-        return new JsonResponse($result);
+
+        return new JsonResponse($result, 200);
     }
 
 
@@ -171,42 +198,27 @@ class ApiController extends AbstractFOSRestController
      *
      * @SWG\Tag(name="Delete Task")
      * @SWG\Response(response="200",description="Task deleted")
-     * @SWG\Response(response="400",description="Task is not exists")
+     * @SWG\Response(response="400",description="Not enought data")
+     * @SWG\Response(response="404",description="Task is not exists")
      * @SWG\Response(response="500",description="Server error")
      */
     public function deleteTask(int $id): JsonResponse
     {
         $task = $this->taskRepository->find($id);
-        if(null == $task){
-            return new JsonResponse('Id not found', 400);
+        if (null == $task) {
+            return new JsonResponse('Task not found', 404);
         }
 
         $this->logger->info('delete task - ' . $id);
 
-        $result = $this->taskRepository->delete($task);
-        if ($result !== 'ok') {
-            $this->logger->critical('error delete - ' . $result);
-            return new JsonResponse($result, 500);
+        try {
+            $this->taskRepository->delete($task);
+        } catch (Exception $exception) {
+            $this->logger->critical('delete error - ' . $exception->getMessage());
+            return new JsonResponse($exception->getMessage(), 500);
         }
 
-        return new JsonResponse($result);
-    }
-
-
-    private function validateAndSaveTask(Task $task): array
-    {
-        $errors = $this->validator->validate($task);
-        if (count($errors) > 0) {
-            return ['answer' => (string)$errors, 'status' => 400];
-        }
-
-        $result = $this->taskRepository->save($task);
-        if ($result !== 'ok') {
-            $this->logger->critical('error saving - ' . $result);
-            return ['answer' => ($result), 'status' => 500];
-        }
-
-        return ['answer' => ($result), 'status' => 200];
+        return new JsonResponse('success');
     }
 
 }

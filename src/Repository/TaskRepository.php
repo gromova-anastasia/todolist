@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Task;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\OptimisticLockException;
+use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,35 +21,38 @@ class TaskRepository extends ServiceEntityRepository
         parent::__construct($registry, Task::class);
     }
 
-    public function save(Task $task): string
+    /**
+     * @param Task $task
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function save(Task $task): void
     {
-        try {
-            if (null == $task->getId()) {
-                $this->_em->persist($task);
-            }
-            $this->_em->flush($task);
-        } catch (\Exception $exception) {
-            return $exception->getMessage();
+        if (null == $task->getId()) {
+            $this->_em->persist($task);
         }
-
-        return 'ok';
+        $this->_em->flush($task);
     }
 
-    public function delete(Task $task): string
+    /**
+     * @param Task $task
+     * @throws ORMException
+     * @throws OptimisticLockException
+     */
+    public function delete(Task $task): void
     {
-        try {
-            $this->_em->remove($task);
-            $this->_em->flush($task);
-        } catch (\Exception $exception) {
-            return $exception->getMessage();
-        }
-
-        return 'ok';
+        $this->_em->remove($task);
+        $this->_em->flush($task);
     }
 
-    public function getUnperformedTasks(int $limit)
+    /**
+     * @param int $limit
+     * @return array
+     */
+    public function getUnperformedTasks(int $limit): array
     {
         return $this->createQueryBuilder('t')
+            ->select('t.id,t.text,t.createDate')
             ->where('t.performed = false')
             ->setMaxResults($limit)
             ->orderBy('t.createDate', 'DESC')
@@ -55,9 +60,14 @@ class TaskRepository extends ServiceEntityRepository
             ->getArrayResult();
     }
 
-    public function getPerformedTasks(int $limit)
+    /**
+     * @param int $limit
+     * @return array
+     */
+    public function getPerformedTasks(int $limit): array
     {
         return $this->createQueryBuilder('t')
+            ->select('t.id,t.text,t.createDate')
             ->where('t.performed = true')
             ->setMaxResults($limit)
             ->orderBy('t.createDate', 'DESC')
