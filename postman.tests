@@ -1,0 +1,130 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Todolist",
+    "description": "This is an awesome app!",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/task": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Get unperformed tasks"
+          }
+        },
+        "tags": [
+          "Get Unperformed Tasks"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "text",
+            "in": "formData",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task created"
+          },
+          "400": {
+            "description": "Not enought data"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "tags": [
+          "Create Task"
+        ]
+      }
+    },
+    "/api/v1/task/{id}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task mark as performed"
+          },
+          "400": {
+            "description": "Task is not exists"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "tags": [
+          "Mark As Performed Task"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task deleted"
+          },
+          "400": {
+            "description": "Task is not exists"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        },
+        "tags": [
+          "Delete Task"
+        ]
+      }
+    },
+    "/api/v1/task/performed": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Get performed tasks"
+          }
+        },
+        "tags": [
+          "Get Performed Tasks"
+        ]
+      }
+    },
+    "/api/v1/task/existing-task-id": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Get id"
+          }
+        },
+        "tags": [
+          "Get existing task id - for postman tests"
+        ]
+      }
+    },
+    "/api/doc.json": {
+      "get": {
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    }
+  },
+  "host": "todolist.devop"
+}
