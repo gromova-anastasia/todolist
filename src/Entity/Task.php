@@ -21,7 +21,7 @@ class Task
     /**
      * @ORM\Column(type="string", nullable=false, length=1000)
      * @Assert\NotBlank
-     * @Assert\Length(max=1000, maxMessage = "Your first name cannot be longer than {{ limit }} characters")
+     * @Assert\Length(max=1000, maxMessage = "Text cannot be longer than {{ limit }} characters")
      */
     private $text;
 
@@ -40,13 +40,16 @@ class Task
         $this->setCreateDate(new \DateTime('now'));
     }
 
-    public function getId(): ?int
+    /**
+     * @return int
+     */
+    public function getId(): int
     {
         return $this->id;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getText(): string
     {
@@ -54,9 +57,9 @@ class Task
     }
 
     /**
-     * @param mixed $text
+     * @param string $text
      */
-    public function setText($text): void
+    public function setText(string $text): void
     {
         $this->text = $text;
     }
@@ -79,7 +82,7 @@ class Task
     }
 
     /**
-     * @return mixed
+     * @return \DateTime
      */
     public function getCreateDate(): \DateTime
     {

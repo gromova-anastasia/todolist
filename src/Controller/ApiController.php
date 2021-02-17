@@ -182,10 +182,14 @@ class ApiController extends AbstractFOSRestController
      *
      * @SWG\Tag(name="Get existing task id - for postman tests")
      * @SWG\Response(response="200",description="Get id")
+     * @SWG\Response(response="404",description="Existing task not found")
      */
     public function getExistingTaskId(): JsonResponse
     {
         $task = $this->taskRepository->findOneBy([]);
+        if (null == $task) {
+            return new JsonResponse('Existing task not found', 404);
+        }
 
         return new JsonResponse($task->getId());
     }
